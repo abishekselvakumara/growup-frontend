@@ -3,6 +3,7 @@ import { useTheme } from '../context/ThemeContext'
 import { Link, useNavigate } from 'react-router-dom'
 import Card from '../components/Card'
 import { FiMail, FiLock, FiLogIn, FiEye, FiEyeOff, FiSun, FiMoon } from 'react-icons/fi'
+import { api } from '../services/api' // Import the api object
 
 // Import images
 import gokuBg from '../assets/goku.png'
@@ -67,13 +68,7 @@ const Login = () => {
 
   const checkBackendStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/auth/test', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      })
-      return response.ok
+      return await api.checkHealth()
     } catch (error) {
       return false
     }
@@ -96,19 +91,7 @@ const Login = () => {
         throw new Error('Unable to connect to server. Please make sure the backend is running.')
       }
 
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed. Please check your credentials.')
-      }
+      const data = await api.login(formData)
       
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify({
@@ -173,15 +156,15 @@ const Login = () => {
             <span className={`text-3xl font-light tracking-tight ${textPrimary}`}>growup+</span>
           </div>
           <h2 className={`text-base font-light ${textSecondary} mb-0.5`}>Welcome Back</h2>
-        <p className={`text-sm sm:text-base font-light animate-glow-red`}
-   style={{ 
-     textShadow: isDark 
-       ? '0 0 10px #ef4444, 0 0 20px #ef4444, 0 0 30px #ef4444' 
-       : '0 0 8px #ef4444, 0 0 16px #ef4444, 0 0 24px #ef4444'
-   }}
->
-  Grow like Plant
-</p>
+          <p className={`text-sm sm:text-base font-light animate-glow-red`}
+            style={{ 
+              textShadow: isDark 
+                ? '0 0 10px #ef4444, 0 0 20px #ef4444, 0 0 30px #ef4444' 
+                : '0 0 8px #ef4444, 0 0 16px #ef4444, 0 0 24px #ef4444'
+            }}
+          >
+            Grow like Plant
+          </p>
         </div>
 
         <Card variant="glass" className="p-5">

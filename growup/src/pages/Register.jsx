@@ -3,6 +3,7 @@ import { useTheme } from '../context/ThemeContext'
 import { Link, useNavigate } from 'react-router-dom'
 import Card from '../components/Card'
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiUserPlus, FiSun, FiMoon } from 'react-icons/fi'
+import { api } from '../services/api' // Import the api object
 
 // Import images
 import gokuBg from '../assets/goku.png'
@@ -104,13 +105,7 @@ const Register = () => {
 
   const checkBackendStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/auth/test', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      })
-      return response.ok
+      return await api.checkHealth()
     } catch (error) {
       return false
     }
@@ -128,44 +123,13 @@ const Register = () => {
     setErrors({})
 
     try {
-      // Check if backend is reachable
-      const isBackendRunning = await checkBackendStatus()
-      if (!isBackendRunning) {
-        // Offer demo mode as fallback
-        if (window.confirm('Backend server is not running. Would you like to continue with demo mode?')) {
-          // Store demo user data
-          localStorage.setItem('token', 'demo-token-' + Date.now())
-          localStorage.setItem('user', JSON.stringify({
-            username: formData.username,
-            email: formData.email,
-            fullName: formData.fullName,
-            initials: (formData.fullName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U').substring(0, 2)
-          }))
-          navigate('/')
-          return
-        } else {
-          throw new Error('Backend server is not running. Please start the Spring Boot application.')
-        }
-      }
-
-      const response = await fetch('http://localhost:8080/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          fullName: formData.fullName,
-          password: formData.password
-        })
+      // Use the api.register method instead of direct fetch
+      const data = await api.register({
+        username: formData.username,
+        email: formData.email,
+        fullName: formData.fullName,
+        password: formData.password
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed. Please try again.')
-      }
       
       // Store token and user data
       localStorage.setItem('token', data.token)
@@ -180,8 +144,27 @@ const Register = () => {
       navigate('/')
     } catch (error) {
       console.error('Registration error:', error)
+      
+      // Check if backend is reachable for fallback demo mode
+      const isBackendRunning = await checkBackendStatus()
+      if (!isBackendRunning) {
+        // Offer demo mode as fallback
+        if (window.confirm('Backend server is not running. Would you like to continue with demo mode?')) {
+          // Store demo user data
+          localStorage.setItem('token', 'demo-token-' + Date.now())
+          localStorage.setItem('user', JSON.stringify({
+            username: formData.username,
+            email: formData.email,
+            fullName: formData.fullName,
+            initials: (formData.fullName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U').substring(0, 2)
+          }))
+          navigate('/')
+          return
+        }
+      }
+      
       setErrors({ 
-        form: error.message || 'Unable to connect to server. Please try again.' 
+        form: error.message || 'Registration failed. Please try again.' 
       })
     } finally {
       setLoading(false)
@@ -232,15 +215,15 @@ const Register = () => {
             <span className={`text-3xl font-light tracking-tight ${textPrimary}`}>growup+</span>
           </div>
           <h2 className={`text-base font-light ${textSecondary} mb-0.5`}>Create Account</h2>
-         <p className={`text-xs sm:text-sm font-light animate-glow-star`}
-   style={{ 
-     textShadow: isDark 
-       ? '0 0 8px #fbbf24, 0 0 16px #fbbf24, 0 0 24px #f59e0b' 
-       : '0 0 6px #fbbf24, 0 0 12px #fbbf24, 0 0 18px #f59e0b'
-   }}
->
-  Achieve like Star
-</p>
+          <p className={`text-xs sm:text-sm font-light animate-glow-star`}
+            style={{ 
+              textShadow: isDark 
+                ? '0 0 8px #fbbf24, 0 0 16px #fbbf24, 0 0 24px #f59e0b' 
+                : '0 0 6px #fbbf24, 0 0 12px #fbbf24, 0 0 18px #f59e0b'
+            }}
+          >
+            Achieve like Star
+          </p>
         </div>
 
         <Card variant="glass" className="p-5">
