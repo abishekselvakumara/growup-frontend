@@ -1,4 +1,4 @@
-const API_BASE = 'https://growupgang.onrender.com'; // Change this to your actual backend URL
+const API_BASE = 'https://growupgang.onrender.com/api'; // Change this to your actual backend URL
 const REQUEST_TIMEOUT = 10000; // 10 seconds
 
 // Helper to create timeout promise
